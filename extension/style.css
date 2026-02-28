@@ -1,0 +1,55 @@
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  width: 260px;
+  padding: 12px;
+  background: #f6f7fb;
+  color: #222;
+}
+
+/* Title */
+h3 {
+  margin: 0 0 10px 0;
+  text-align: center;
+  font-size: 16px;
+}
+
+/* Inputs + select */
+input,
+select {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid #d0d3dc;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  box-sizing: border-box;
+}
+
+/* Button */
+button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #4338ca;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+#status {
+  text-align: center;
+  font-size: 12px;
+  margin-bottom: 8px;
+  color: #666;
+}
