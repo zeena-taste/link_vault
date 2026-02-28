@@ -53,3 +53,16 @@
     margin-bottom: 8px; /* slightly less spacing between buttons */
   }
 }
+
+.link-notes {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.2s ease, max-height 0.2s ease;
+}
+
+.link-item:hover .link-notes,
+.link-item:focus-within .link-notes {
+  opacity: 1;
+  max-height: 100px;
+}
