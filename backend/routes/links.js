@@ -13,8 +13,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ⚠️  IMPORTANT: /unassigned MUST come before /:id
-// Otherwise Express matches "unassigned" as an id param and this route never runs
+// /unassigned MUST come before /:id
 router.get('/unassigned', async (req, res) => {
   try {
     const data = await readData();
@@ -25,7 +24,7 @@ router.get('/unassigned', async (req, res) => {
   }
 });
 
-// GET links by collection — also before /:id for same reason
+// GET links by collection — also before /:id
 router.get('/collection/:id', async (req, res) => {
   try {
     const data = await readData();
@@ -41,11 +40,9 @@ router.get('/collection/:id', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const data = await readData();
-    const link = data.links.find(
-      l => l.id === Number(req.params.id)
-    );
+    const link = data.links.find(l => l.id === Number(req.params.id));
     if (!link) return res.status(404).json({ error: 'Link not found' });
-    res.json(link);                    // FIX: was returning "colleciton" (wrong variable)
+    res.json(link);
   } catch (err) {
     res.status(500).json({ error: "Failed to read link" });
   }
@@ -59,6 +56,7 @@ router.post("/", async (req, res) => {
       id: Date.now(),
       name: req.body.name,
       url: req.body.url,
+      notes: req.body.notes ?? "",        // FIX: notes was never being saved
       collectionId: req.body.collectionId ?? null
     };
     data.links.push(newLink);
@@ -81,7 +79,8 @@ router.put('/:id', async (req, res) => {
     const updatedLink = {
       ...data.links[index],
       name: req.body.name ?? data.links[index].name,
-      url: req.body.url ?? data.links[index].url,       // FIX: was "req.body.ur" (typo = URL never updated)
+      url: req.body.url ?? data.links[index].url,
+      notes: req.body.notes ?? data.links[index].notes,  // FIX: notes was never being updated
       collectionId: req.body.collectionId ?? data.links[index].collectionId
     };
 
