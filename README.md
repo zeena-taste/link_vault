@@ -1,107 +1,81 @@
 # 🔒 Link Vault
 
-A full-stack link management web app with a companion Chrome Extension. Save, organise, and retrieve links across collections — from the browser or directly from any webpage you're visiting.
+A full-stack link management app. Save URLs, organise them into collections, and search across them — from the web app or directly from any page you're browsing via the Chrome Extension.
 
 ---
 
-## What It Does
+## How the Code Works
 
-Link Vault lets you save URLs with a name and optional notes, group them into collections, search across your saved links, and manage everything from a clean web interface. The Chrome Extension lets you save any page you're currently on with one click — your collections load automatically in the popup so you can assign the link right away.
+### Frontend (`/frontend`)
+Built with React 19 and Vite. All state lives in `App.jsx` and flows down to components via props — no Redux or Context, just straightforward prop drilling since the app is small enough that it stays manageable.
 
----
+**`src/api.js`** — every single fetch call to the backend lives here. One file, one place to change the base URL. Uses `import.meta.env.VITE_API_URL` so the backend URL is set via environment variable and never hardcoded.
 
-## System Architecture
+**`src/App.jsx`** — root component. Holds all state: links, collections, active filters, modal visibility, search term. All handlers (add, edit, delete, filter) live here and get passed down as props.
 
-```
-┌─────────────────────────┐       ┌──────────────────────────┐
-│   Chrome Extension      │       │   React Frontend (Vite)  │
-│   manifest v3           │       │   Vercel                 │
-│   popup.html / popup.js │       │   App.jsx + components   │
-└────────────┬────────────┘       └────────────┬─────────────┘
-             │  HTTP POST /links               │  HTTP GET/POST/PUT/DELETE
-             │  HTTP GET  /collections         │  /links  /collections
-             └──────────────┬──────────────────┘
-                            │
-               ┌────────────▼─────────────┐
-               │   Express Backend        │
-               │   Node.js + Express 5    │
-               │   Render (free tier)     │
-               │                          │
-               │   Routes:                │
-               │   /links    (CRUD)       │
-               │   /collections (CRUD)    │
-               └────────────┬─────────────┘
-                            │  fs/promises read/write
-               ┌────────────▼─────────────┐
-               │   data.json              │
-               │   Flat-file database     │
-               │   { links[], collections[] } │
-               └──────────────────────────┘
-```
+**`src/components/`**
+- `Header.jsx` — search input and the add link button
+- `sidebar.jsx` — navigation between home and collections, add collection button. Collapses to a bottom bar on mobile.
+- `linklist.jsx` — renders the list of link cards with edit and delete buttons
+- `collectionPage.jsx` — shows all collections with their real link counts
+- `addlinkbtn.jsx` — modal for adding or editing a link, includes collection assignment
+- `addcollectionbtn.jsx` — modal for creating a new collection
 
-**Frontend** — React 19 + Vite, plain CSS with CSS custom properties, no UI library. Component-based layout with a collapsible sidebar, modal system for adding/editing, and live search filtering.
+### Backend (`/backend`)
+Node.js with Express 5, ES Modules throughout. Two route files handle all CRUD operations. Data is stored in a flat JSON file — no database dependency.
 
-**Backend** — Node.js with Express 5, ES Modules. RESTful API with two route files (`links.js`, `collections.js`). Data is persisted to a local `data.json` file via `fs/promises`.
+**`server.js`** — entry point. Sets up CORS (allows the frontend origin and any `chrome-extension://` origin), registers the two route files, starts the server on `process.env.PORT` so it works on Render.
 
-**Chrome Extension** — Manifest V3 extension. Auto-fills the current tab's title and URL into the popup, loads your collections from the backend, and POSTs the new link on save.
+**`routes/links.js`** — handles all `/links` endpoints. Important: the `/unassigned` and `/collection/:id` routes are defined before `/:id` so Express does not swallow them as ID parameters.
 
-**Communication** — All three pieces talk to the same backend over HTTP. CORS is configured to allow the frontend origin, any `chrome-extension://` origin, and the local dev server.
+**`routes/collections.js`** — handles all `/collections` endpoints.
 
----
+**`data/db.js`** — two functions: `readData()` and `writeData()`. Reads and writes `data.json` using Node's `fs/promises`. All routes import these instead of touching the file directly.
 
-## Tech Stack
+**`data/data.json`** — the database. Stores `{ links: [], collections: [] }`.
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, Vite 7, plain CSS |
-| Backend | Node.js, Express 5, ES Modules |
-| Database | JSON flat-file (`fs/promises`) |
-| Extension | Chrome Manifest V3, vanilla JS |
-| Deployment | Vercel (frontend), Render (backend) |
+### Chrome Extension (`/extension`)
+Manifest V3. When you click the icon it auto-fills the current tab's title and URL, loads your collections from the backend into a dropdown, and POSTs the new link on save. Talks to the exact same backend as the web app.
 
----
+**`manifest.json`** — declares `activeTab` permission to read the current tab, and `host_permissions` to allow fetch calls to the backend (required in Manifest V3 — without this Chrome blocks all requests silently).
 
-## Features
-
-- Add, edit, and delete links with a name, URL, and notes
-- Organise links into named collections
-- Filter links by collection via the sidebar
-- Live search across link names
-- Chrome Extension to save the current tab in one click
-- Collections load in the extension popup for instant assignment
-- Responsive layout — sidebar collapses to a bottom nav on mobile
-- Loading spinner while data fetches from the backend
-- Graceful error handling if the server is unreachable
+**`popup.js`** — all the extension logic. Checks if the server is reachable on open, loads collections, handles the save.
 
 ---
 
 ## Project Structure
 
 ```
-link-vault/
-├── frontend/               # React + Vite app
+link_vault/
+├── frontend/
 │   ├── src/
-│   │   ├── App.jsx         # Root component, all state lives here
-│   │   ├── api.js          # All fetch calls to the backend
+│   │   ├── App.jsx
+│   │   ├── api.js
+│   │   ├── main.jsx
 │   │   └── components/
-│   │       ├── Header.jsx          # Search bar + add button
-│   │       ├── sidebar.jsx         # Nav: home, collections, add
-│   │       ├── linklist.jsx        # Renders the link cards
-│   │       ├── collectionPage.jsx  # Collections overview
-│   │       ├── addlinkbtn.jsx      # Add/edit link modal
-│   │       └── addcollectionbtn.jsx# Add collection modal
-│   └── .env                # VITE_API_URL
+│   │       ├── Header.jsx
+│   │       ├── sidebar.jsx
+│   │       ├── linklist.jsx
+│   │       ├── collectionPage.jsx
+│   │       ├── addlinkbtn.jsx
+│   │       ├── addcollectionbtn.jsx
+│   │       └── CSS/
+│   ├── public/
+│   │   └── favicon.svg
+│   ├── index.html
+│   └── package.json
 │
-├── backend/                # Express API
-│   ├── server.js           # Entry point, CORS, middleware
+├── backend/
+│   ├── server.js
 │   ├── routes/
-│   │   ├── links.js        # GET/POST/PUT/DELETE /links
-│   │   └── collections.js  # GET/POST/PUT/DELETE /collections
-│   └── data/
-│       ├── db.js           # readData / writeData helpers
-│       └── data.json       # Persistent storage
+│   │   ├── links.js
+│   │   └── collections.js
+│   ├── data/
+│   │   ├── db.js
+│   │   └── data.json
+│   └── package.json
 │
-└── extension/              # Chrome Extension
+└── extension/
     ├── manifest.json
     ├── popup.html
     ├── popup.js
@@ -110,57 +84,81 @@ link-vault/
 
 ---
 
-## Running Locally
+## Setup & Running Locally
 
-**Backend**
+### Prerequisites
+- Node.js v18+
+- A Chromium-based browser (Chrome, Edge, Brave) for the extension
+
+### 1. Backend
+
 ```bash
 cd backend
 npm install
 node server.js
-# Running on http://localhost:5000
 ```
 
-**Frontend**
+Server runs on `http://localhost:5000`. You should see:
+```
+Server running on port 5000
+```
+
+### 2. Frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
-# Running on http://localhost:5173
 ```
 
-**Extension**
-1. Open `chrome://extensions`
-2. Enable Developer Mode
-3. Click "Load unpacked" → select the `extension/` folder
+App runs on `http://localhost:5173`.
+
+Create a `.env` file inside the `frontend/` folder:
+```
+VITE_API_URL=http://localhost:5000
+```
+
+### 3. Chrome Extension
+
+1. Open `chrome://extensions` in your browser
+2. Enable **Developer Mode** (toggle in the top right)
+3. Click **Load unpacked**
+4. Select the `extension/` folder
+
+The Link Vault icon will appear in your toolbar. Make sure the backend is running before using it.
+
+---
+
+## Environment Variables
+
+### Frontend (`frontend/.env`)
+| Variable | Value |
+|---|---|
+| `VITE_API_URL` | Backend URL — `http://localhost:5000` locally, your Render URL in production |
+
+### Backend
+| Variable | Value |
+|---|---|
+| `FRONTEND_URL` | Your deployed frontend URL — used for CORS in production |
+| `PORT` | Set automatically by Render, falls back to 5000 locally |
 
 ---
 
 ## Deployment
 
-| Piece | Platform | Notes |
-|---|---|---|
-| Frontend | Vercel | Auto-detects Vite. Set `VITE_API_URL` env var to your Render URL |
-| Backend | Render | Set `FRONTEND_URL` env var to your Vercel URL. Free tier sleeps after 15min inactivity |
-| Extension | Local / Chrome Web Store | Update `API_URL` in `popup.js` to your Render URL before publishing |
+### Backend → Render
+1. Push to GitHub
+2. Render → New Web Service → connect repo
+3. Set Root Directory to `backend`
+4. Build command: `npm install` — Start command: `node server.js`
+5. Add environment variable: `FRONTEND_URL` = your Vercel URL
 
----
+### Frontend → Vercel
+1. Vercel → New Project → connect repo
+2. Set Root Directory to `frontend`
+3. Framework preset: Vite — Build command: `npm run build` — Output: `dist`
+4. Add environment variable: `VITE_API_URL` = your Render URL
+5. Deploy
 
-## Possible Future Additions
-
-**Short term**
-- Tag system — add freeform tags to links for cross-collection filtering
-- Favicon fetching — display the site's favicon next to each link
-- Link health checker — periodically ping saved URLs and flag broken ones
-- Import/export — export all links as JSON or CSV, import from browser bookmarks
-
-**Medium term**
-- User authentication — accounts so multiple users can have separate vaults
-- Real database — swap the JSON flat-file for PostgreSQL or SQLite for reliability and concurrent access
-- Browser history integration — suggest links from your history to save
-- Collections sharing — share a collection via a public read-only link
-
-**Long term**
-- Full-text search — index page content at save time so you can search by what's on the page, not just the title
-- Browser support — port the extension to Firefox and Safari
-- Mobile app — React Native companion app
-- AI-powered auto-tagging — suggest collections and tags based on page content
+### Extension (production)
+Update the `API_URL` constant at the top of `popup.js` to your Render URL, then reload the extension in `chrome://extensions`.
