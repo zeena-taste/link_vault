@@ -7,7 +7,7 @@ const app = express();
 
 // Allowed origins: local dev + your future Vercel frontend URL
 const allowedOrigins = [
-  "https://linkvault-mocha.vercel.app",
+  "http://localhost:5173",
   process.env.FRONTEND_URL
 ].filter(Boolean);           // removes undefined if env var isn't set
 
