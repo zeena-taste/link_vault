@@ -7,8 +7,8 @@ const app = express();
 
 // Allowed origins: local dev + your future Vercel frontend URL
 const allowedOrigins = [
-  "http://localhost:5173",
-  process.env.FRONTEND_URL  // set this on Render when you deploy
+  "https://linkvault-mocha.vercel.app/",
+  env.FRONTEND_URL  // set this on Render when you deploy
 ].filter(Boolean);           // removes undefined if env var isn't set
 
 app.use(cors({
