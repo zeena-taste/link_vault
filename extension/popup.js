@@ -1,7 +1,7 @@
 // Point this at your deployed backend when live.
 // For local dev: "http://localhost:5000"
 // For production: "https://your-backend.onrender.com"
-const API_URL = "http://localhost:5000";
+const API_URL = "https://link-vault-p0sw.onrender.com";
 
 // Auto-fill current tab's title and URL
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
