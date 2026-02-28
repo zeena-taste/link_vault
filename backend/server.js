@@ -9,7 +9,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.FRONTEND_URL
-].filter(Boolean);           // removes undefined if env var isn't set
+].filter(Boolean);          // removes undefined if env var isn't set
 
 app.use(cors({
   origin: (origin, callback) => {
