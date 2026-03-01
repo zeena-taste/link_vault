@@ -1,7 +1,7 @@
 import './CSS/links.css'
 import { useState } from "react";
 
-export default function AddLinkModal({ onClose, onAdd, collections, editingLink }) {
+export default function AddLinkModal({ onClose, onAdd, collections, editingLink, allTags = [] }) {
   const [name, setName] = useState(editingLink?.name || "");
   const [url, setUrl] = useState(editingLink?.url || "");
   const [collectionId, setCollectionId] = useState(editingLink?.collectionId || "");
@@ -9,17 +9,15 @@ export default function AddLinkModal({ onClose, onAdd, collections, editingLink 
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState(editingLink?.tags || []);
 
-  const addTag = () => {
-    const trimmed = tagInput.trim().toLowerCase();
+  const addTag = (tag) => {
+    const trimmed = (tag || tagInput).trim().toLowerCase();
     if (trimmed && !tags.includes(trimmed)) {
       setTags([...tags, trimmed]);
     }
     setTagInput("");
   };
 
-  const removeTag = (tag) => {
-    setTags(tags.filter(t => t !== tag));
-  };
+  const removeTag = (tag) => setTags(tags.filter(t => t !== tag));
 
   const handleAdd = () => {
     if (!name || !url) return alert("Enter both a name and URL");
@@ -33,6 +31,9 @@ export default function AddLinkModal({ onClose, onAdd, collections, editingLink 
     onClose();
   };
 
+  // existing tags from other links that aren't already selected
+  const suggestions = allTags.filter(t => !tags.includes(t) && !t.includes('.'));
+
   return (
     <div className="modal-overlay">
       <div className="modal">
@@ -40,7 +41,7 @@ export default function AddLinkModal({ onClose, onAdd, collections, editingLink 
         <input value={name} onChange={e => setName(e.target.value)} placeholder="Text label" />
         <input value={url} onChange={e => setUrl(e.target.value)} placeholder="Paste link" />
         <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes" />
-        
+
         {/* Tag input */}
         <div className="tag-input-row">
           <input
@@ -50,10 +51,22 @@ export default function AddLinkModal({ onClose, onAdd, collections, editingLink 
             placeholder="Add a tag..."
             className="tag-input"
           />
-          <button onClick={addTag} className="tag-add-btn">+</button>
+          <button onClick={() => addTag()} className="tag-add-btn">+</button>
         </div>
 
-        {/* Tag pills */}
+        {/* Existing tag suggestions */}
+        {suggestions.length > 0 && (
+          <div className="tag-suggestions">
+            <span className="tag-suggestions-label">Existing tags:</span>
+            {suggestions.map(t => (
+              <button key={t} className="tag-suggestion-chip" onClick={() => addTag(t)}>
+                + {t}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Selected tag pills */}
         {tags.length > 0 && (
           <div className="tag-pills">
             {tags.map(tag => (

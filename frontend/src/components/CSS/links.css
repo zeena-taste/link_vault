@@ -63,7 +63,7 @@
   display: flex;
   gap: 6px;
   width: 80%;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .tag-input {
@@ -71,18 +71,52 @@
   padding: 8px;
   border-radius: 6px;
   border: 1px solid #ccc;
+  font-size: 0.9rem;
 }
 
 .tag-add-btn {
   width: 36px !important;
   padding: 8px !important;
-  background: var(--accent, #f59e0b) !important;
+  background: #f59e0b !important;
   color: white !important;
   border: none !important;
   border-radius: 6px !important;
   cursor: pointer !important;
   font-size: 1.2rem !important;
   margin-bottom: 0 !important;
+}
+
+.tag-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 80%;
+  margin-bottom: 8px;
+}
+
+.tag-suggestions-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.tag-suggestion-chip {
+  background: none !important;
+  border: 1px dashed #cbd5e1 !important;
+  color: #64748b !important;
+  padding: 2px 8px !important;
+  border-radius: 10px !important;
+  font-size: 0.78rem !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  width: auto !important;
+  transition: 0.15s ease !important;
+}
+
+.tag-suggestion-chip:hover {
+  border-color: #f59e0b !important;
+  color: #f59e0b !important;
 }
 
 .tag-pills {

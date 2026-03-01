@@ -228,14 +228,15 @@ export default function App() {
 
       {showLinkModal && (
         <AddLinkModal
-          onClose={() => {
-            setShowLinkModal(false);
-            setEditingLink(null);
-          }}
-          onAdd={addOrUpdateLinkHandler}
-          collections={collections}
-          editingLink={editingLink}
-        />
+        onClose={() => {
+          setShowLinkModal(false);
+          setEditingLink(null);
+        }}
+        onAdd={addOrUpdateLinkHandler}
+        collections={collections}
+        editingLink={editingLink}
+        allTags={[...new Set(links.flatMap(l => l.tags || []))]}
+      />
       )}
 
       {showCollectionModal && (

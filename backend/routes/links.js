@@ -3,7 +3,7 @@ import pool from '../data/db.js';
 
 const router = express.Router();
 
-// Helper: normalize a row so collection_id is always a JS number (not BigInt)
+// normalize: convert BigInt IDs to numbers, ensure tags is always an array
 function normalize(row) {
   return {
     ...row,
@@ -67,13 +67,9 @@ router.post('/', async (req, res) => {
 
     // auto-tag by domain
     let domain = '';
-    try {
-      domain = new URL(url).hostname.replace('www.', '');
-    } catch {
-      domain = '';
-    }
+    try { domain = new URL(url).hostname.replace('www.', ''); } catch { domain = ''; }
 
-    // merge auto domain tag with any custom tags, remove duplicates
+    // merge domain tag with custom tags, remove duplicates
     const allTags = [...new Set([domain, ...tags].filter(Boolean))];
 
     const result = await pool.query(
@@ -91,6 +87,15 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { name, url, notes, collectionId, tags } = req.body;
+
+    // if url is being updated, recalculate domain tag
+    let updatedTags = tags ?? null;
+    if (url && tags) {
+      let domain = '';
+      try { domain = new URL(url).hostname.replace('www.', ''); } catch { domain = ''; }
+      updatedTags = [...new Set([domain, ...tags].filter(Boolean))];
+    }
+
     const result = await pool.query(
       `UPDATE links SET
         name = COALESCE($1, name),
@@ -99,7 +104,7 @@ router.put('/:id', async (req, res) => {
         collection_id = COALESCE($4, collection_id),
         tags = COALESCE($5, tags)
        WHERE id = $6 RETURNING *`,
-      [name, url, notes, collectionId, tags ?? null, req.params.id]
+      [name, url, notes, collectionId, updatedTags, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: "Link not found" });
     res.json(normalize(result.rows[0]));
