@@ -1,7 +1,7 @@
 import './CSS/sidebar.css';
 
 export default function Sidebar({
-  onGoHome, onGoCollections, onAddCollection
+  onGoHome, onGoCollections, onAddCollection, onExport
 }) {
   return (
     <div className="sidebar">

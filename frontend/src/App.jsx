@@ -164,7 +164,6 @@ export default function App() {
           setActiveCollectionId(null);
           setSearchTerm("");
           setView("home");
-          onExport={exportHandler}
         }}
         onGoCollections={() => setView("collections")}  // FIX: sidebar "Collections" item now navigates correctly
         onAddCollection={() => setShowCollectionModal(true)}
@@ -172,6 +171,7 @@ export default function App() {
           setActiveCollectionId(id);
           setView("home");
         }}
+        onExport={exportHandler}
       />
 
       <div className="ls-main">
