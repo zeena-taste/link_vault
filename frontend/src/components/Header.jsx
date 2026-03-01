@@ -10,6 +10,12 @@ export default function Header ({ onAddLink, searchTerm, onSearchChange}) {
             onChange={(e) => onSearchChange(e.target.value)}
             className='search' />
 
+            <button className="export-btn"
+            onClick={onExport}
+            title='Export links'>
+                ↓ Export
+            </button>
+
             <button className="add-btn"
             onClick={onAddLink}
             title='Add link'>

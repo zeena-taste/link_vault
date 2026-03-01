@@ -112,6 +112,17 @@ export default function App() {
     console.log("Edit collection", id, newName);
   };
 
+  const exportHandler = () => {
+    const dataStr = JSON.stringify(links, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "link-vault-export.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="ls-app">
       <Sidebar
@@ -131,6 +142,7 @@ export default function App() {
       <div className="ls-main">
         <Header
           onAddLink={() => setShowLinkModal(true)}
+          onExport={exportHandler}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />
