@@ -34,6 +34,11 @@ export default function Sidebar({
         <span className="label">Add Collection</span>
       </div>
 
+      <button className="export-btn"
+            onClick={onExport}
+            title='Export links'>
+                ↓ Export
+            </button>
     </div>
   );
 }

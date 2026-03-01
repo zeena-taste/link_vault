@@ -78,19 +78,3 @@
         font-size: 26px;
     }
 }
-
-.export-btn {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  color: var(--secondary);
-  cursor: pointer;
-  font-size: 13px;
-  transition: 0.2s ease;
-}
-
-.export-btn:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-}

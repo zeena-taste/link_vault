@@ -1,0 +1,68 @@
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 2px;
+}
+
+.filter-chip {
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #334155;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.filter-chip:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.filter-chip.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: white;
+}
+
+.filter-clear {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 3px 8px;
+}
+
+.filter-clear:hover {
+  color: #f44336;
+}
+
+@media (max-width: 768px) {
+  .filter-bar {
+    gap: 8px;
+    padding: 8px 0;
+  }
+}

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import './App.css'
 // components import
 import Header from './components/Header.jsx'
+import FilterBar from './components/FilterBar.jsx';
 import Sidebar from './components/sidebar.jsx'
 import Linklist from './components/linklist.jsx'
 import CollectionsPage from './components/collectionPage.jsx'
@@ -50,12 +51,41 @@ export default function App() {
 
   // FIX: search now checks "name" not "title" — matches what the backend stores
   const filteredLinks = links.filter(link => {
-    const nameToCheck = link.name || "";
-    const matchesSearch = nameToCheck.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCollection = activeCollectionId
-      ? link.collectionId === activeCollectionId
-      : true;
-    return matchesSearch && matchesCollection;
+  const nameToCheck = link.name || "";
+
+  const matchesSearch = nameToCheck.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const matchesCollection = activeCollectionId
+    ? link.collectionId === activeCollectionId
+    : true;
+
+  const matchesTag = filterTag
+    ? link.tags?.includes(filterTag)
+    : true;
+
+  const matchesDomain = filterDomain
+    ? link.tags?.includes(filterDomain)
+    : true;
+
+  const matchesDate = (() => {
+    if (!filterDate || !link.created_at) return true;
+    const linkDate = new Date(link.created_at);
+    const now = new Date();
+    if (filterDate === "today") {
+      return linkDate.toDateString() === now.toDateString();
+    }
+    if (filterDate === "week") {
+      const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+      return linkDate >= weekAgo;
+    }
+    if (filterDate === "month") {
+      const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+      return linkDate >= monthAgo;
+    }
+    return true;
+  })();
+
+  return matchesSearch && matchesCollection && matchesTag && matchesDomain && matchesDate;
   });
 
   const addOrUpdateLinkHandler = async (linkData, colId, notes, tags, existingId) => {
@@ -123,6 +153,10 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  const [filterTag, setFilterTag] = useState(null);
+  const [filterDomain, setFilterDomain] = useState(null);
+  const [filterDate, setFilterDate] = useState(null); // "today" | "week" | "month" | null
+
   return (
     <div className="ls-app">
       <Sidebar
@@ -130,6 +164,7 @@ export default function App() {
           setActiveCollectionId(null);
           setSearchTerm("");
           setView("home");
+          onExport={exportHandler}
         }}
         onGoCollections={() => setView("collections")}  // FIX: sidebar "Collections" item now navigates correctly
         onAddCollection={() => setShowCollectionModal(true)}
@@ -141,11 +176,26 @@ export default function App() {
 
       <div className="ls-main">
         <Header
-          onAddLink={() => setShowLinkModal(true)}
-          onExport={exportHandler}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
+            onAddLink={() => setShowLinkModal(true)}
+            onExport={exportHandler}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+          />
+
+          <FilterBar
+            links={links}
+            filterTag={filterTag}
+            filterDomain={filterDomain}
+            filterDate={filterDate}
+            onFilterTag={setFilterTag}
+            onFilterDomain={setFilterDomain}
+            onFilterDate={setFilterDate}
+            onClear={() => {
+              setFilterTag(null);
+              setFilterDomain(null);
+              setFilterDate(null);
+            }}
+          />
 
         {loading ? (
           <div className="ls-loading-container">
