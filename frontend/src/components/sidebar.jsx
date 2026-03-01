@@ -34,11 +34,15 @@ export default function Sidebar({
         <span className="label">Add Collection</span>
       </div>
 
-      <button className="export-btn"
-            onClick={onExport}
-            title='Export links'>
-                ↓ Export
-            </button>
+      <div className="dock-item" onClick={onExport}>
+        <span className="icon">
+          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+              d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M8 12l4 4 4-4M12 4v12" />
+          </svg>
+        </span>
+        <span className="label">Export</span>
+    </div>
     </div>
   );
 }

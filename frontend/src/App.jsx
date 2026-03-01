@@ -29,6 +29,9 @@ export default function App() {
   const [editingLink, setEditingLink] = useState(null);
   const [view, setView] = useState("home");
   const [loading, setLoading] = useState(true);
+  const [filterTag, setFilterTag] = useState(null);
+  const [filterDomain, setFilterDomain] = useState(null);
+  const [filterDate, setFilterDate] = useState(null); // "today" | "week" | "month" | null
 
   // Load data from backend on mount
   useEffect(() => {
@@ -152,10 +155,6 @@ export default function App() {
     a.click();
     URL.revokeObjectURL(url);
   };
-
-  const [filterTag, setFilterTag] = useState(null);
-  const [filterDomain, setFilterDomain] = useState(null);
-  const [filterDate, setFilterDate] = useState(null); // "today" | "week" | "month" | null
 
   return (
     <div className="ls-app">
