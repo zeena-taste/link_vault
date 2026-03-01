@@ -1,36 +1,40 @@
 import express from 'express';
-import { readData, writeData } from '../data/db.js';
+import pool from '../data/db.js';
 
 const router = express.Router();
 
 // GET all links
 router.get('/', async (req, res) => {
   try {
-    const data = await readData();
-    res.json(data.links);
+    const result = await pool.query('SELECT * FROM links ORDER BY id DESC');
+    const links = result.rows.map(r => ({ ...r, collectionId: r.collection_id }));
+    res.json(links);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to read links" });
   }
 });
 
-// /unassigned MUST come before /:id
+// GET unassigned — MUST be before /:id
 router.get('/unassigned', async (req, res) => {
   try {
-    const data = await readData();
-    const unassignedLinks = data.links.filter(link => link.collectionId === null);
-    res.json(unassignedLinks);
+    const result = await pool.query('SELECT * FROM links WHERE collection_id IS NULL ORDER BY id DESC');
+    const links = result.rows.map(r => ({ ...r, collectionId: r.collection_id }));
+    res.json(links);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch unassigned links" });
   }
 });
 
-// GET links by collection — also before /:id
+// GET links by collection — MUST be before /:id
 router.get('/collection/:id', async (req, res) => {
   try {
-    const data = await readData();
-    const collectionId = Number(req.params.id);
-    const filteredLinks = data.links.filter(link => link.collectionId === collectionId);
-    res.json(filteredLinks);
+    const result = await pool.query(
+      'SELECT * FROM links WHERE collection_id = $1 ORDER BY id DESC',
+      [req.params.id]
+    );
+    const links = result.rows.map(r => ({ ...r, collectionId: r.collection_id }));
+    res.json(links);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch links by collection" });
   }
@@ -39,9 +43,9 @@ router.get('/collection/:id', async (req, res) => {
 // GET link by ID
 router.get('/:id', async (req, res) => {
   try {
-    const data = await readData();
-    const link = data.links.find(l => l.id === Number(req.params.id));
-    if (!link) return res.status(404).json({ error: 'Link not found' });
+    const result = await pool.query('SELECT * FROM links WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Link not found' });
+    const link = { ...result.rows[0], collectionId: result.rows[0].collection_id };
     res.json(link);
   } catch (err) {
     res.status(500).json({ error: "Failed to read link" });
@@ -49,63 +53,50 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST add new link
-router.post("/", async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const data = await readData();
-    const newLink = {
-      id: Date.now(),
-      name: req.body.name,
-      url: req.body.url,
-      notes: req.body.notes ?? "",        // FIX: notes was never being saved
-      collectionId: req.body.collectionId ?? null
-    };
-    data.links.push(newLink);
-    await writeData(data);
-    res.status(201).json(newLink);
+    const { name, url, notes = '', collectionId = null } = req.body;
+    const id = Date.now();
+    const result = await pool.query(
+      'INSERT INTO links (id, name, url, notes, collection_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [id, name, url, notes, collectionId]
+    );
+    const link = { ...result.rows[0], collectionId: result.rows[0].collection_id };
+    res.status(201).json(link);
   } catch (err) {
-    res.status(500).json({ error: "Failed to add new link" });
+    console.error(err);
+    res.status(500).json({ error: "Failed to add link" });
   }
 });
 
 // PUT update link
 router.put('/:id', async (req, res) => {
   try {
-    const data = await readData();
-    const linkId = Number(req.params.id);
-    const index = data.links.findIndex(link => link.id === linkId);
-
-    if (index === -1) return res.status(404).json({ error: "Link not found" });
-
-    const updatedLink = {
-      ...data.links[index],
-      name: req.body.name ?? data.links[index].name,
-      url: req.body.url ?? data.links[index].url,
-      notes: req.body.notes ?? data.links[index].notes,  // FIX: notes was never being updated
-      collectionId: req.body.collectionId ?? data.links[index].collectionId
-    };
-
-    data.links[index] = updatedLink;
-    await writeData(data);
-
-    res.json(updatedLink);
+    const { name, url, notes, collectionId } = req.body;
+    const result = await pool.query(
+      `UPDATE links SET
+        name = COALESCE($1, name),
+        url = COALESCE($2, url),
+        notes = COALESCE($3, notes),
+        collection_id = COALESCE($4, collection_id)
+       WHERE id = $5 RETURNING *`,
+      [name, url, notes, collectionId, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: "Link not found" });
+    const link = { ...result.rows[0], collectionId: result.rows[0].collection_id };
+    res.json(link);
   } catch (err) {
     res.status(500).json({ error: "Failed to update link" });
   }
 });
 
 // DELETE link
-router.delete("/:id", async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const data = await readData();
-    const linkId = Number(req.params.id);
-    const index = data.links.findIndex(link => link.id === linkId);
-
-    if (index === -1) return res.status(404).json({ error: "Link not found" });
-
-    const deletedLink = data.links.splice(index, 1)[0];
-    await writeData(data);
-
-    res.json(deletedLink);
+    const result = await pool.query('DELETE FROM links WHERE id = $1 RETURNING *', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: "Link not found" });
+    const link = { ...result.rows[0], collectionId: result.rows[0].collection_id };
+    res.json(link);
   } catch (err) {
     res.status(500).json({ error: "Failed to delete link" });
   }

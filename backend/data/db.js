@@ -1,20 +1,9 @@
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+import pkg from 'pg';
+const { Pool } = pkg;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }  // required for Supabase
+});
 
-const filePath = path.join(__dirname, "data.json");
-
-export async function readData() {
-  const raw = await fs.readFile(filePath, "utf-8");
-  return JSON.parse(raw);
-}
-
-export async function writeData(data) {
-  await fs.writeFile(
-    filePath,
-    JSON.stringify(data, null, 2)
-  );
-}
+export default pool;

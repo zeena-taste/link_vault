@@ -1,14 +1,15 @@
 import express from 'express';
-import { readData, writeData } from '../data/db.js';
+import pool from '../data/db.js';
 
 const router = express.Router();
 
 // GET all collections
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const data = await readData();
-    res.json(data.collections);
+    const result = await pool.query('SELECT * FROM collections ORDER BY id DESC');
+    res.json(result.rows);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to read collections" });
   }
 });
@@ -16,66 +17,52 @@ router.get("/", async (req, res) => {
 // GET collection by ID
 router.get('/:id', async (req, res) => {
   try {
-    const data = await readData();
-    const collection = data.collections.find(       // FIX: was "colleciton" (typo)
-      c => c.id === Number(req.params.id)
-    );
-    if (!collection) return res.status(404).json({ error: 'Collection not found' });
-    res.json(collection);
+    const result = await pool.query('SELECT * FROM collections WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Collection not found' });
+    res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: "Failed to read collection" });
   }
 });
 
 // POST add new collection
-router.post("/", async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const data = await readData();
-    const newCollection = {
-      id: Date.now(),           // FIX: was "Data.now()" (capital D = ReferenceError)
-      name: req.body.name
-    };
-    data.collections.push(newCollection);
-    await writeData(data);
-    res.status(201).json(newCollection);
+    const id = Date.now();
+    const result = await pool.query(
+      'INSERT INTO collections (id, name) VALUES ($1, $2) RETURNING *',
+      [id, req.body.name]
+    );
+    res.status(201).json(result.rows[0]);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to create collection" });
   }
 });
 
 // PUT update collection
-router.put("/:id", async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const data = await readData();
-    const index = data.collections.findIndex(       // FIX: was "data.collection" (missing "s")
-      c => c.id === Number(req.params.id)
+    const result = await pool.query(
+      'UPDATE collections SET name = $1 WHERE id = $2 RETURNING *',
+      [req.body.name, req.params.id]
     );
-    if (index === -1) return res.status(404).json({ error: "Collection not found" });
-
-    data.collections[index].name = req.body.name;
-    await writeData(data);
-
-    res.json(data.collections[index]);
+    if (result.rows.length === 0) return res.status(404).json({ error: "Collection not found" });
+    res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: "Failed to update collection" });
   }
 });
 
 // DELETE collection
-router.delete("/:id", async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const data = await readData();
-    const index = data.collections.findIndex(
-      c => c.id === Number(req.params.id)
+    const result = await pool.query(
+      'DELETE FROM collections WHERE id = $1 RETURNING *',
+      [req.params.id]
     );
-    if (index === -1) return res.status(404).json({ error: "Collection not found" });
-    // FIX 1: was "index === 1" (missing minus = wrong condition, never caught missing items)
-    // FIX 2: was "res.status.json(...)" (missing "()" after status = crash)
-
-    const deleted = data.collections.splice(index, 1);
-    await writeData(data);
-
-    res.json(deleted[0]);
+    if (result.rows.length === 0) return res.status(404).json({ error: "Collection not found" });
+    res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: "Failed to delete collection" });
   }
