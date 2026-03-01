@@ -1,45 +1,45 @@
 # 🔒 Link Vault
 
-A full-stack link management app. Save URLs, organise them into collections, and search across them — from the web app or directly from any page you're browsing via the Chrome Extension.
+A full-stack link management app. Save URLs, organise them into collections, and search across them — from the web app or directly from any page via the Chrome Extension.
+
+[![Repo](https://img.shields.io/badge/GitHub-link_vault-black?logo=github)](https://github.com/zeena-taste/link_vault)
 
 ---
 
 ## How the Code Works
 
 ### Frontend (`/frontend`)
-Built with React 19 and Vite. All state lives in `App.jsx` and flows down to components via props — no Redux or Context, just straightforward prop drilling since the app is small enough that it stays manageable.
+Built with React 19 and Vite. All state lives in `App.jsx` and flows down to components via props — no Redux or Context.
 
-**`src/api.js`** — every single fetch call to the backend lives here. One file, one place to change the base URL. Uses `import.meta.env.VITE_API_URL` so the backend URL is set via environment variable and never hardcoded.
+**`src/api.js`** — every fetch call to the backend lives here. Uses `import.meta.env.VITE_API_URL` so the backend URL is set via environment variable and never hardcoded.
 
-**`src/App.jsx`** — root component. Holds all state: links, collections, active filters, modal visibility, search term. All handlers (add, edit, delete, filter) live here and get passed down as props.
+**`src/App.jsx`** — root component. Holds all state: links, collections, active filters, modal visibility, search term. All handlers live here and get passed down as props.
 
 **`src/components/`**
-- `Header.jsx` — search input and the add link button
-- `sidebar.jsx` — navigation between home and collections, add collection button. Collapses to a bottom bar on mobile.
-- `linklist.jsx` — renders the list of link cards with edit and delete buttons
-- `collectionPage.jsx` — shows all collections with their real link counts
-- `addlinkbtn.jsx` — modal for adding or editing a link, includes collection assignment
+- `Header.jsx` — search input and add link button
+- `sidebar.jsx` — navigation between home and collections. Collapses to a bottom bar on mobile.
+- `linklist.jsx` — renders link cards. Hover or tap a card to reveal its note.
+- `collectionPage.jsx` — shows all collections with real link counts
+- `addlinkbtn.jsx` — modal for adding or editing a link, includes collection assignment and notes
 - `addcollectionbtn.jsx` — modal for creating a new collection
 
 ### Backend (`/backend`)
-Node.js with Express 5, ES Modules throughout. Two route files handle all CRUD operations. Data is stored in a flat JSON file — no database dependency.
+Node.js with Express 5 and ES Modules. Two route files handle all CRUD. Data is stored in PostgreSQL on Neon.
 
-**`server.js`** — entry point. Sets up CORS (allows the frontend origin and any `chrome-extension://` origin), registers the two route files, starts the server on `process.env.PORT` so it works on Render.
+**`server.js`** — entry point. Sets up CORS (allows the frontend origin and any `chrome-extension://` origin), registers route files, starts on `process.env.PORT`.
 
-**`routes/links.js`** — handles all `/links` endpoints. Important: the `/unassigned` and `/collection/:id` routes are defined before `/:id` so Express does not swallow them as ID parameters.
+**`routes/links.js`** — all `/links` endpoints. The `/unassigned` and `/collection/:id` routes are defined before `/:id` so Express doesn't match them as ID parameters. A `normalize()` helper converts PostgreSQL BIGINT columns to JS numbers before sending to the frontend.
 
-**`routes/collections.js`** — handles all `/collections` endpoints.
+**`routes/collections.js`** — all `/collections` endpoints.
 
-**`data/db.js`** — two functions: `readData()` and `writeData()`. Reads and writes `data.json` using Node's `fs/promises`. All routes import these instead of touching the file directly.
-
-**`data/data.json`** — the database. Stores `{ links: [], collections: [] }`.
+**`data/db.js`** — creates a `pg` connection pool using `process.env.DATABASE_URL`. All routes import the pool directly.
 
 ### Chrome Extension (`/extension`)
-Manifest V3. When you click the icon it auto-fills the current tab's title and URL, loads your collections from the backend into a dropdown, and POSTs the new link on save. Talks to the exact same backend as the web app.
+Manifest V3. Auto-fills the current tab's title and URL, loads collections from the backend, and POSTs the new link on save.
 
-**`manifest.json`** — declares `activeTab` permission to read the current tab, and `host_permissions` to allow fetch calls to the backend (required in Manifest V3 — without this Chrome blocks all requests silently).
+**`manifest.json`** — declares `activeTab` permission and `host_permissions` for the backend URL. Without `host_permissions`, Manifest V3 silently blocks all fetch calls.
 
-**`popup.js`** — all the extension logic. Checks if the server is reachable on open, loads collections, handles the save.
+**`popup.js`** — checks server is reachable on open, loads collections, handles save.
 
 ---
 
@@ -71,8 +71,7 @@ link_vault/
 │   │   ├── links.js
 │   │   └── collections.js
 │   ├── data/
-│   │   ├── db.js
-│   │   └── data.json
+│   │   └── db.js
 │   └── package.json
 │
 └── extension/
@@ -88,44 +87,78 @@ link_vault/
 
 ### Prerequisites
 - Node.js v18+
-- A Chromium-based browser (Chrome, Edge, Brave) for the extension
+- A Chromium-based browser for the extension
+- A [Neon](https://neon.tech) free account for the database
 
-### 1. Backend
+### 1. Database
+
+Create a free project on [neon.tech](https://neon.tech), then run this in the Neon SQL Editor:
+
+```sql
+CREATE TABLE collections (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+CREATE TABLE links (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL,
+  url TEXT NOT NULL,
+  notes TEXT DEFAULT '',
+  collection_id BIGINT REFERENCES collections(id) ON DELETE SET NULL
+);
+```
+
+Copy your connection string from Neon — it looks like:
+```
+postgresql://user:password@ep-xxxx.us-east-2.aws.neon.tech/neondb?sslmode=require
+```
+
+### 2. Backend
 
 ```bash
 cd backend
 npm install
+```
+
+Create a `.env` file in `backend/`:
+```
+DATABASE_URL=your-neon-connection-string
+FRONTEND_URL=http://localhost:5173
+PORT=5000
+```
+
+```bash
 node server.js
 ```
 
-Server runs on `http://localhost:5000`. You should see:
-```
-Server running on port 5000
-```
+Server runs on `http://localhost:5000`.
 
-### 2. Frontend
+### 3. Frontend
 
 ```bash
 cd frontend
 npm install
+```
+
+Create a `.env` file in `frontend/`:
+```
+VITE_API_URL=http://localhost:5000
+```
+
+```bash
 npm run dev
 ```
 
 App runs on `http://localhost:5173`.
 
-Create a `.env` file inside the `frontend/` folder:
-```
-VITE_API_URL=http://localhost:5000
-```
+### 4. Chrome Extension
 
-### 3. Chrome Extension
+1. Open `chrome://extensions`
+2. Enable **Developer Mode**
+3. Click **Load unpacked** → select the `extension/` folder
 
-1. Open `chrome://extensions` in your browser
-2. Enable **Developer Mode** (toggle in the top right)
-3. Click **Load unpacked**
-4. Select the `extension/` folder
-
-The Link Vault icon will appear in your toolbar. Make sure the backend is running before using it.
+Make sure the backend is running before using the extension.
 
 ---
 
@@ -134,31 +167,50 @@ The Link Vault icon will appear in your toolbar. Make sure the backend is runnin
 ### Frontend (`frontend/.env`)
 | Variable | Value |
 |---|---|
-| `VITE_API_URL` | Backend URL — `http://localhost:5000` locally, your Render URL in production |
+| `VITE_API_URL` | `http://localhost:5000` locally, your Render URL in production |
+| `VITE_SENTRY_DSN` | Optional — Sentry DSN for error tracking |
 
 ### Backend
 | Variable | Value |
 |---|---|
-| `FRONTEND_URL` | Your deployed frontend URL — used for CORS in production |
+| `DATABASE_URL` | Neon PostgreSQL connection string |
+| `FRONTEND_URL` | Your deployed frontend URL — used for CORS |
 | `PORT` | Set automatically by Render, falls back to 5000 locally |
 
 ---
 
 ## Deployment
 
+### Database → Neon
+Already set up. Data persists independently of any server restarts or redeploys.
+
 ### Backend → Render
 1. Push to GitHub
-2. Render → New Web Service → connect repo
-3. Set Root Directory to `backend`
-4. Build command: `npm install` — Start command: `node server.js`
-5. Add environment variable: `FRONTEND_URL` = your Vercel URL
+2. Render → New Web Service → connect repo → set Root Directory to `backend`
+3. Build command: `npm install` — Start command: `npm start`
+4. Add environment variables: `DATABASE_URL`, `FRONTEND_URL`
 
 ### Frontend → Vercel
-1. Vercel → New Project → connect repo
-2. Set Root Directory to `frontend`
-3. Framework preset: Vite — Build command: `npm run build` — Output: `dist`
-4. Add environment variable: `VITE_API_URL` = your Render URL
-5. Deploy
+1. Vercel → New Project → connect repo → set Root Directory to `frontend`
+2. Framework: Vite — Build command: `npm run build` — Output: `dist`
+3. Add environment variable: `VITE_API_URL` = your Render URL
+4. Deploy
+
+> **Note:** Vite bakes environment variables at build time. If you update `VITE_API_URL` you must redeploy — a restart alone won't pick up the change.
 
 ### Extension (production)
-Update the `API_URL` constant at the top of `popup.js` to your Render URL, then reload the extension in `chrome://extensions`.
+Update `API_URL` at the top of `popup.js` to your Render URL, then reload the extension in `chrome://extensions`.
+
+---
+
+## Contributing
+
+Contributions are welcome. Some good starting points:
+
+- **Favicon fetching** — auto-grab the site icon for each saved link
+- **Link health checker** — flag broken or redirected URLs
+- **Tags** — cross-collection labelling
+- **User authentication** — multi-user support with Auth0 or Clerk
+- **Full-text search** — extend search to URLs and notes, not just link names
+
+Fork the repo, create a branch, and open a pull request.

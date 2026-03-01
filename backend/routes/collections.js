@@ -3,11 +3,16 @@ import pool from '../data/db.js';
 
 const router = express.Router();
 
+// Helper: normalize id to JS number
+function normalize(row) {
+  return { ...row, id: Number(row.id) };
+}
+
 // GET all collections
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM collections ORDER BY id DESC');
-    res.json(result.rows);
+    res.json(result.rows.map(normalize));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to read collections" });
@@ -19,7 +24,7 @@ router.get('/:id', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM collections WHERE id = $1', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Collection not found' });
-    res.json(result.rows[0]);
+    res.json(normalize(result.rows[0]));
   } catch (err) {
     res.status(500).json({ error: "Failed to read collection" });
   }
@@ -33,7 +38,7 @@ router.post('/', async (req, res) => {
       'INSERT INTO collections (id, name) VALUES ($1, $2) RETURNING *',
       [id, req.body.name]
     );
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(normalize(result.rows[0]));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create collection" });
@@ -48,7 +53,7 @@ router.put('/:id', async (req, res) => {
       [req.body.name, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: "Collection not found" });
-    res.json(result.rows[0]);
+    res.json(normalize(result.rows[0]));
   } catch (err) {
     res.status(500).json({ error: "Failed to update collection" });
   }
@@ -62,7 +67,7 @@ router.delete('/:id', async (req, res) => {
       [req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: "Collection not found" });
-    res.json(result.rows[0]);
+    res.json(normalize(result.rows[0]));
   } catch (err) {
     res.status(500).json({ error: "Failed to delete collection" });
   }
