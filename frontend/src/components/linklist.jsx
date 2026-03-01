@@ -23,6 +23,14 @@ export default function LinkList({ links, onEditLink, onDeleteLink }) {
           </a>
           {link.notes && <p className="link-notes">{link.notes}</p>}
 
+          {link.tags?.length > 0 && (
+            <div className="link-tags">
+              {link.tags.map(tag => (
+                <span key={tag} className="link-tag">{tag}</span>
+              ))}
+            </div>
+          )}
+
           <div className="link-actions">
             <button
               className="edit-btn"

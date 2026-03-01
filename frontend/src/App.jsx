@@ -58,20 +58,20 @@ export default function App() {
     return matchesSearch && matchesCollection;
   });
 
-  const addOrUpdateLinkHandler = async (linkData, colId, notes, existingId) => {
-    try {
-      if (existingId) {
-        const updated = await updateLink(existingId, { ...linkData, collectionId: colId, notes });
-        setLinks(links.map(l => l.id === existingId ? updated : l));
-      } else {
-        const newLink = await addLink({ ...linkData, collectionId: colId, notes });
-        setLinks([...links, newLink]);
-      }
-      setShowLinkModal(false);
-      setEditingLink(null);
-    } catch (err) {
-      alert("Failed to save link. Is the server running?");
+  const addOrUpdateLinkHandler = async (linkData, colId, notes, tags, existingId) => {
+  try {
+    if (existingId) {
+      const updated = await updateLink(existingId, { ...linkData, collectionId: colId, notes, tags });
+      setLinks(links.map(l => l.id === existingId ? updated : l));
+    } else {
+      const newLink = await addLink({ ...linkData, collectionId: colId, notes, tags });
+      setLinks([...links, newLink]);
     }
+    setShowLinkModal(false);
+    setEditingLink(null);
+  } catch (err) {
+    alert("Failed to save link. Is the server running?");
+  }
   };
 
   const deleteLinkHandler = async (id) => {
@@ -109,7 +109,6 @@ export default function App() {
   };
 
   const editCollectionHandler = async (id, newName) => {
-    // placeholder — CollectionsPage doesn't call this yet, but it must exist
     console.log("Edit collection", id, newName);
   };
 

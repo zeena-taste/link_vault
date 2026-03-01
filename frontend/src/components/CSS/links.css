@@ -58,3 +58,60 @@
     margin-bottom: 8px;
   }
 }
+
+.tag-input-row {
+  display: flex;
+  gap: 6px;
+  width: 80%;
+  margin-bottom: 10px;
+}
+
+.tag-input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.tag-add-btn {
+  width: 36px !important;
+  padding: 8px !important;
+  background: var(--accent, #f59e0b) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-size: 1.2rem !important;
+  margin-bottom: 0 !important;
+}
+
+.tag-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 80%;
+  margin-bottom: 10px;
+}
+
+.tag-pill {
+  background: #e2e8f0;
+  color: #334155;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tag-remove {
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  color: #94a3b8 !important;
+  font-size: 1rem !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: auto !important;
+  line-height: 1 !important;
+}

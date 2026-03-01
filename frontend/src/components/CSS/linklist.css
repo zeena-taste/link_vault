@@ -102,3 +102,19 @@
     max-width: 300px;
     margin: 0 auto;
 }
+
+.link-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.link-tag {
+  background: #e2e8f0;
+  color: #334155;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
