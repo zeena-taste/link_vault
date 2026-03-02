@@ -5,11 +5,14 @@ export default function LinkList({ links, onEditLink, onDeleteLink }) {
   if (links.length === 0) {
     return (
       <div className="ls-empty-state">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-          <path d="M8 1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h5ZM3 2.5a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 .5-.5v-10a.5.5 0 0 0-.5-.5H3Z"/>
-        </svg>
+        <div className="ls-empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        </div>
         <h3 className="ls-empty-title">No links yet</h3>
-        <p className="ls-empty-text">Add your first link to get started</p>
+        <p className="ls-empty-text">Hit the + button to save your first link</p>
       </div>
     );
   }
@@ -19,7 +22,7 @@ export default function LinkList({ links, onEditLink, onDeleteLink }) {
       {links.map(link => (
         <div key={link.id} className="link-item">
 
-          {/* Top row: title + action buttons */}
+          {/* top row: title + action buttons */}
           <div className="link-top-row">
             <a href={link.url} target="_blank" rel="noreferrer" className="link-title">
               {link.name}
@@ -39,13 +42,13 @@ export default function LinkList({ links, onEditLink, onDeleteLink }) {
             </div>
           </div>
 
-          {/* Hover reveal row: notes left, tags right */}
+          {/* hover reveal: notes left, tags right */}
           {(link.notes || link.tags?.length > 0) && (
             <div className="link-hover-row">
-              <p className="link-notes">{link.notes || ""}</p>
+              {link.notes && <p className="link-notes">{link.notes}</p>}
               {link.tags?.length > 0 && (
                 <div className="link-tags">
-                  {link.tags.map(tag => (
+                  {link.tags.filter(t => !t.includes('.')).map(tag => (
                     <span key={tag} className="link-tag">{tag}</span>
                   ))}
                 </div>

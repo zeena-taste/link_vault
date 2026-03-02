@@ -6,10 +6,12 @@
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+/* ── spacing fix: gap between header bar and first link ── */
 .link-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-top: 16px;
 }
 
 .link-item {
@@ -115,29 +117,39 @@
   white-space: nowrap;
 }
 
-/* empty state */
+/* ── empty state ── */
 .ls-empty-state {
   text-align: center;
-  padding: 4rem 1rem;
-  color: #64748b;
+  padding: 5rem 1rem;
 }
 
-.ls-empty-state svg {
-  width: 40px;
-  height: 40px;
-  margin-bottom: 1rem;
-  color: #94a3b8;
+.ls-empty-icon {
+  width: 56px;
+  height: 56px;
+  background: #fef3c7;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+
+.ls-empty-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #f59e0b;
 }
 
 .ls-empty-title {
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-size: 1.15rem;
+  font-weight: 600;
   color: #334155;
-  margin-bottom: 0.5rem;
+  margin-bottom: 6px;
 }
 
 .ls-empty-text {
   color: #64748b;
-  max-width: 300px;
+  font-size: 0.875rem;
+  max-width: 280px;
   margin: 0 auto;
 }
