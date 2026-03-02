@@ -1,8 +1,23 @@
 # 🔒 Link Vault
 
-A full-stack link management app. Save URLs, organise them into collections, and search across them — from the web app or directly from any page via the Chrome Extension.
+A full-stack link management app. Save URLs, organise them into collections, tag them automatically by domain, and search and filter across them — from the web app or directly from any page via the Chrome Extension.
 
 [![Repo](https://img.shields.io/badge/GitHub-link_vault-black?logo=github)](https://github.com/zeena-taste/link_vault)
+[![Frontend](https://img.shields.io/badge/Live-Vercel-black?logo=vercel)](https://linkvault-mocha.vercel.app)
+[![API](https://img.shields.io/badge/API-Render-blue?logo=render)](https://link-vault-p0sw.onrender.com)
+
+---
+
+## Features
+
+- Save links with a name, URL, and notes
+- Auto-tag links by domain on save (e.g. `github.com`, `youtube.com`)
+- Add custom tags manually and reuse existing ones across links
+- Organise links into collections
+- Filter links by tag, domain, or date added (today / this week / this month)
+- Search links by name
+- Export all links as JSON
+- Chrome Extension — save from any page without opening the app
 
 ---
 
@@ -17,10 +32,11 @@ Built with React 19 and Vite. All state lives in `App.jsx` and flows down to com
 
 **`src/components/`**
 - `Header.jsx` — search input and add link button
-- `sidebar.jsx` — navigation between home and collections. Collapses to a bottom bar on mobile.
-- `linklist.jsx` — renders link cards. Hover or tap a card to reveal its note.
+- `sidebar.jsx` — navigation between home, collections, and export. Collapses to a bottom bar on mobile.
+- `linklist.jsx` — renders link cards. Hover to reveal notes on the left and tags on the right.
+- `FilterBar.jsx` — filter chips for date, domain, and custom tags. Only shows filters that have data.
 - `collectionPage.jsx` — shows all collections with real link counts
-- `addlinkbtn.jsx` — modal for adding or editing a link, includes collection assignment and notes
+- `addlinkbtn.jsx` — modal for adding or editing a link. Includes tag input with suggestions from existing tags, collection assignment, and notes.
 - `addcollectionbtn.jsx` — modal for creating a new collection
 
 ### Backend (`/backend`)
@@ -28,7 +44,7 @@ Node.js with Express 5 and ES Modules. Two route files handle all CRUD. Data is 
 
 **`server.js`** — entry point. Sets up CORS (allows the frontend origin and any `chrome-extension://` origin), registers route files, starts on `process.env.PORT`.
 
-**`routes/links.js`** — all `/links` endpoints. The `/unassigned` and `/collection/:id` routes are defined before `/:id` so Express doesn't match them as ID parameters. A `normalize()` helper converts PostgreSQL BIGINT columns to JS numbers before sending to the frontend.
+**`routes/links.js`** — all `/links` endpoints. The `/unassigned` and `/collection/:id` routes are defined before `/:id` so Express doesn't match them as ID parameters. A `normalize()` helper converts PostgreSQL BIGINT columns to JS numbers before sending to the frontend. On POST, the domain is extracted from the URL using `new URL(url).hostname` and automatically added to the tags array alongside any custom tags.
 
 **`routes/collections.js`** — all `/collections` endpoints.
 
@@ -56,6 +72,7 @@ link_vault/
 │   │       ├── Header.jsx
 │   │       ├── sidebar.jsx
 │   │       ├── linklist.jsx
+│   │       ├── FilterBar.jsx
 │   │       ├── collectionPage.jsx
 │   │       ├── addlinkbtn.jsx
 │   │       ├── addcollectionbtn.jsx
@@ -105,7 +122,9 @@ CREATE TABLE links (
   name TEXT NOT NULL,
   url TEXT NOT NULL,
   notes TEXT DEFAULT '',
-  collection_id BIGINT REFERENCES collections(id) ON DELETE SET NULL
+  collection_id BIGINT REFERENCES collections(id) ON DELETE SET NULL,
+  tags TEXT[] DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
@@ -168,7 +187,6 @@ Make sure the backend is running before using the extension.
 | Variable | Value |
 |---|---|
 | `VITE_API_URL` | `http://localhost:5000` locally, your Render URL in production |
-| `VITE_SENTRY_DSN` | Optional — Sentry DSN for error tracking |
 
 ### Backend
 | Variable | Value |
@@ -182,13 +200,14 @@ Make sure the backend is running before using the extension.
 ## Deployment
 
 ### Database → Neon
-Already set up. Data persists independently of any server restarts or redeploys.
+Free hosted PostgreSQL. Data persists independently of any server restarts or redeploys. Neon uses IPv4 which is required for Render's free tier.
 
 ### Backend → Render
 1. Push to GitHub
 2. Render → New Web Service → connect repo → set Root Directory to `backend`
 3. Build command: `npm install` — Start command: `npm start`
 4. Add environment variables: `DATABASE_URL`, `FRONTEND_URL`
+5. Enable **Auto-Deploy** in Settings so pushes to main deploy automatically
 
 ### Frontend → Vercel
 1. Vercel → New Project → connect repo → set Root Directory to `frontend`
@@ -203,14 +222,17 @@ Update `API_URL` at the top of `popup.js` to your Render URL, then reload the ex
 
 ---
 
+## Roadmap
+
+- [ ] Read later / reminders — flag links to revisit with optional remind date
+- [ ] Weekly stats — links added per week, most saved domain
+- [ ] Favicon fetching — auto-grab the site icon for each saved link
+- [ ] Link health checker — flag broken or redirected URLs
+- [ ] User authentication — multi-user support with Auth0 or Clerk
+- [ ] Full-text search — extend search to URLs and notes
+
+---
+
 ## Contributing
 
-Contributions are welcome. Some good starting points:
-
-- **Favicon fetching** — auto-grab the site icon for each saved link
-- **Link health checker** — flag broken or redirected URLs
-- **Tags** — cross-collection labelling
-- **User authentication** — multi-user support with Auth0 or Clerk
-- **Full-text search** — extend search to URLs and notes, not just link names
-
-Fork the repo, create a branch, and open a pull request.
+Contributions are welcome. Fork the repo, create a branch, and open a pull request.
