@@ -32,6 +32,7 @@ export default function App() {
   const [filterTag, setFilterTag] = useState(null);
   const [filterDomain, setFilterDomain] = useState(null);
   const [filterDate, setFilterDate] = useState(null); // "today" | "week" | "month" | null
+  const [showFilters, setShowFilters] = useState(false);
 
   // Load data from backend on mount
   useEffect(() => {
@@ -179,22 +180,27 @@ export default function App() {
             onExport={exportHandler}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters(f => !f)}
+            showFilterBtn={view === "home"}
           />
 
-          <FilterBar
-            links={links}
-            filterTag={filterTag}
-            filterDomain={filterDomain}
-            filterDate={filterDate}
-            onFilterTag={setFilterTag}
-            onFilterDomain={setFilterDomain}
-            onFilterDate={setFilterDate}
-            onClear={() => {
-              setFilterTag(null);
-              setFilterDomain(null);
-              setFilterDate(null);
-            }}
-          />
+          {view === "home" && showFilters && (
+            <FilterBar
+              links={links}
+              filterTag={filterTag}
+              filterDomain={filterDomain}
+              filterDate={filterDate}
+              onFilterTag={setFilterTag}
+              onFilterDomain={setFilterDomain}
+              onFilterDate={setFilterDate}
+              onClear={() => {
+                setFilterTag(null);
+                setFilterDomain(null);
+                setFilterDate(null);
+              }}
+            />
+          )}
 
         {loading ? (
           <div className="ls-loading-container">

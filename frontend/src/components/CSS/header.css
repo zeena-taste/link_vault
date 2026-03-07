@@ -66,6 +66,43 @@
     transform: scale(1.05);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-toggle-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+  flex-shrink: 0;
+}
+
+.filter-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.filter-toggle-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-toggle-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
 @media (max-width: 768px) {
     
     .header {
