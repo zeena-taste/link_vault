@@ -3,7 +3,6 @@
 A full-stack link management app. Save URLs, organise them into collections, tag them automatically by domain, and search and filter across them — from the web app or directly from any page via the Chrome Extension.
 
 [![Repo](https://img.shields.io/badge/GitHub-link_vault-black?logo=github)](https://github.com/zeena-taste/link_vault)
-[![Frontend](https://img.shields.io/badge/Live-Vercel-black?logo=vercel)](https://linkvault-mocha.vercel.app)
 [![API](https://img.shields.io/badge/API-Render-blue?logo=render)](https://link-vault-p0sw.onrender.com)
 
 ---
