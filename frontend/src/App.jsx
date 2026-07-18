@@ -218,7 +218,8 @@ export default function App() {
   return (
     <div className="app-container">
       <Sidebar
-        onViewChange={setView}
+        onGoHome={goHome}
+        onGoCollections={() => setView("collections")}
         onAddCollection={() => setShowCollectionModal(true)}
         onExport={exportData}
         dark={dark}
